@@ -52,11 +52,15 @@ func TestRegisterNoCIDR(t *testing.T) {
 
 func TestRegisterWithSubdomain(t *testing.T) {
 	// Register with subdomain tests
-	_, err := DB.RegisterWithSubdomain(cidrslice{}, "29d5db12-4ef8-431d-963e-9218caafb14b")
+	subdomain := "29d5db12-4ef8-431d-963e-9218caafb14b"
+	aTXT, err := DB.RegisterWithSubdomain(cidrslice{}, subdomain)
 	if err != nil {
 		t.Errorf("Registration with subdomain failed, got error [%v]", err)
 	}
-
+	// Ensure the subdomain is set correctly
+	if aTXT.Subdomain != subdomain {
+		t.Errorf("Expected subdomain to be '%s', but got '%s'", subdomain, aTXT.Subdomain)
+	}
 }
 
 func TestRegisterWithInvalidSubdomain(t *testing.T) {

@@ -179,10 +179,10 @@ func (d *acmedb) Register(afrom cidrslice) (ACMETxt, error) {
 func (d *acmedb) RegisterWithSubdomain(afrom cidrslice, subdomain string) (ACMETxt, error) {
 
 	// ensure the subdomain is not already in use
-	exists, err := d.subdomainExists(subdomain)
+	exists, err := d.SubdomainExists(subdomain)
 	if err != nil {
-		log.WithFields(log.Fields{"error": err.Error()}).Error("Error in subdomainExists check")
-		return ACMETxt{}, errors.New("database error")
+		log.WithFields(log.Fields{"error": err.Error()}).Error("Error in SubdomainExists check")
+		return ACMETxt{}, errors.New("subdomain check error")
 	}
 	if exists {
 		log.WithFields(log.Fields{"subdomain": subdomain}).Debug("Subdomain already exists")
@@ -359,7 +359,7 @@ func (d *acmedb) SetBackend(backend *sql.DB) {
 	d.DB = backend
 }
 
-func (d *acmedb) subdomainExists(subdomain string) (bool, error) {
+func (d *acmedb) SubdomainExists(subdomain string) (bool, error) {
 	d.Mutex.Lock()
 	defer d.Mutex.Unlock()
 	var results []ACMETxt

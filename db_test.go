@@ -336,3 +336,27 @@ func TestUpdate(t *testing.T) {
 		t.Errorf("DB Update failed, got error: [%v]", err)
 	}
 }
+
+func TestSubdomainExists(t *testing.T) {
+	// Create  reg to refer to
+	reg, err := DB.Register(cidrslice{})
+	if err != nil {
+		t.Errorf("Registration failed, got error [%v]", err)
+	}
+
+	exists, err := DB.SubdomainExists(reg.Subdomain)
+	if err != nil {
+		t.Errorf("Could not check subdomain existence, got error [%v]", err)
+	}
+	if !exists {
+		t.Errorf("Subdomain [%s] should exist but was not found", reg.Subdomain)
+	}
+
+	exists, err = DB.SubdomainExists("00000000-0000-0000-0000-000000000000")
+	if err != nil {
+		t.Errorf("Could not check subdomain existence, got error [%v]", err)
+	}
+	if exists {
+		t.Errorf("Subdomain [00000000-0000-0000-0000-000000000000] should not exist but was found")
+	}
+}

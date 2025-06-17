@@ -4,8 +4,9 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"errors"
-	"github.com/erikstmartin/go-testdb"
 	"testing"
+
+	"github.com/erikstmartin/go-testdb"
 )
 
 type testResult struct {
@@ -46,6 +47,38 @@ func TestRegisterNoCIDR(t *testing.T) {
 	_, err := DB.Register(cidrslice{})
 	if err != nil {
 		t.Errorf("Registration failed, got error [%v]", err)
+	}
+}
+
+func TestRegisterWithSubdomain(t *testing.T) {
+	// Register with subdomain tests
+	_, err := DB.RegisterWithSubdomain(cidrslice{}, "29d5db12-4ef8-431d-963e-9218caafb14b")
+	if err != nil {
+		t.Errorf("Registration with subdomain failed, got error [%v]", err)
+	}
+
+}
+
+func TestRegisterWithInvalidSubdomain(t *testing.T) {
+
+	// Invalid subdomain
+	_, err := DB.RegisterWithSubdomain(cidrslice{}, "invalid-subdomain!")
+	if err == nil {
+		t.Errorf("Expected error for invalid subdomain, but got none")
+	}
+}
+
+func TestRegisterWithAlreadyExistingSubdomain(t *testing.T) {
+	// Register with subdomain tests
+	_, err := DB.RegisterWithSubdomain(cidrslice{}, "29d5db12-4ef8-431d-963e-9218caafb14b")
+	if err != nil {
+		t.Errorf("Registration with subdomain failed, got error [%v]", err)
+	}
+
+	// Try to register again with the same subdomain
+	_, err = DB.RegisterWithSubdomain(cidrslice{}, "29d5db12-4ef8-431d-963e-9218caafb14b")
+	if err == nil {
+		t.Errorf("Expected error for already existing subdomain, but got none")
 	}
 }
 

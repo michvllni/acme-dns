@@ -116,6 +116,49 @@ func TestApiRegister(t *testing.T) {
 	response.Value("allowfrom").Array().Elements("123.123.123.123/32", "2001:db8:a0b:12f0::1/32", "::1/64")
 }
 
+func TestApiRegisterWithSubdomain(t *testing.T) {
+
+	subdomain := "29d5db12-4ef8-431d-963e-9218caafb14b"
+	router := setupRouter(false, false)
+	server := httptest.NewServer(router)
+	defer server.Close()
+	e := getExpect(t, server)
+	e.POST("/register").
+		WithJSON(map[string]interface{}{
+			"subdomain": subdomain,
+		}).
+		Expect().
+		Status(http.StatusCreated).
+		JSON().Object().
+		ContainsKey("fulldomain").
+		ContainsKey("subdomain").
+		ContainsKey("username").
+		ContainsKey("password").
+		NotContainsKey("error")
+
+	allowfrom := map[string][]interface{}{
+		"allowfrom": []interface{}{"123.123.123.123/32",
+			"2001:db8:a0b:12f0::1/32",
+			"[::1]/64",
+		},
+	}
+
+	response := e.POST("/register").
+		WithJSON(allowfrom).
+		Expect().
+		Status(http.StatusCreated).
+		JSON().Object().
+		ContainsKey("fulldomain").
+		ContainsKey("subdomain").
+		ContainsKey("username").
+		ContainsKey("password").
+		ContainsKey("allowfrom").
+		NotContainsKey("error").
+		ValueEqual("subdomain", subdomain)
+
+	response.Value("allowfrom").Array().Elements("123.123.123.123/32", "2001:db8:a0b:12f0::1/32", "::1/64")
+}
+
 func TestApiRegisterBadAllowFrom(t *testing.T) {
 	router := setupRouter(false, false)
 	server := httptest.NewServer(router)

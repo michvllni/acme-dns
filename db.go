@@ -170,10 +170,27 @@ func (d *acmedb) NewTXTValuesInTransaction(tx *sql.Tx, subdomain string) error {
 	return err
 }
 
+// Register creates a new ACMETxt entry in the database with a random subdomain.
 func (d *acmedb) Register(afrom cidrslice) (ACMETxt, error) {
+	return d.RegisterWithSubdomain(afrom, uuid.New().String())
+}
+
+// RegisterWithSubdomain creates a new ACMETxt entry in the database with a given subdomain.
+func (d *acmedb) RegisterWithSubdomain(afrom cidrslice, subdomain string) (ACMETxt, error) {
+
+	// ensure the subdomain is not already in use
+	exists, err := d.subdomainExists(subdomain)
+	if err != nil {
+		log.WithFields(log.Fields{"error": err.Error()}).Error("Error in subdomainExists check")
+		return ACMETxt{}, errors.New("database error")
+	}
+	if exists {
+		log.WithFields(log.Fields{"subdomain": subdomain}).Debug("Subdomain already exists")
+		return ACMETxt{}, errors.New("subdomain already exists")
+	}
+
 	d.Mutex.Lock()
 	defer d.Mutex.Unlock()
-	var err error
 	tx, err := d.DB.Begin()
 	// Rollback if errored, commit if not
 	defer func() {
@@ -183,7 +200,7 @@ func (d *acmedb) Register(afrom cidrslice) (ACMETxt, error) {
 		}
 		_ = tx.Commit()
 	}()
-	a := newACMETxt()
+	a := newACMETxtWithSubdomain(subdomain)
 	a.AllowFrom = cidrslice(afrom.ValidEntries())
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(a.Password), 10)
 	regSQL := `
@@ -340,4 +357,39 @@ func (d *acmedb) GetBackend() *sql.DB {
 
 func (d *acmedb) SetBackend(backend *sql.DB) {
 	d.DB = backend
+}
+
+func (d *acmedb) subdomainExists(subdomain string) (bool, error) {
+	d.Mutex.Lock()
+	defer d.Mutex.Unlock()
+	var results []ACMETxt
+	getSQL := `
+	SELECT Subdomain
+	FROM records
+	WHERE Subdomain=$1 LIMIT 1
+	`
+	if Config.Database.Engine == "sqlite3" {
+		getSQL = getSQLiteStmt(getSQL)
+	}
+
+	sm, err := d.DB.Prepare(getSQL)
+	if err != nil {
+		return false, err
+	}
+	defer sm.Close()
+	rows, err := sm.Query(subdomain)
+	if err != nil {
+		return false, err
+	}
+	defer rows.Close()
+
+	// It will only be one row though
+	for rows.Next() {
+		txt, err := getModelFromRow(rows)
+		if err != nil {
+			return false, err
+		}
+		results = append(results, txt)
+	}
+	return len(results) > 0, nil
 }

@@ -49,7 +49,17 @@ func webRegisterPost(w http.ResponseWriter, r *http.Request, _ httprouter.Params
 	}
 
 	// Create new user
-	nu, err := DB.Register(aTXT.AllowFrom)
+	var nu ACMETxt
+	if aTXT.Subdomain == "" {
+		nu, err = DB.Register(aTXT.AllowFrom)
+	} else {
+		if !validSubdomain(aTXT.Subdomain) {
+			err = fmt.Errorf("invalid subdomain: %s", aTXT.Subdomain)
+		} else {
+			nu, err = DB.RegisterWithSubdomain(aTXT.AllowFrom, aTXT.Subdomain)
+		}
+	}
+
 	if err != nil {
 		errstr := fmt.Sprintf("%v", err)
 		reg = jsonError(errstr)

@@ -14,7 +14,6 @@ type ACMETxt struct {
 	Password string
 	ACMETxtPost
 	AllowFrom cidrslice
-	Subdomain string `json:"subdomain,omitempty"`
 }
 
 // ACMETxtPost holds the DNS part of the ACMETxt struct

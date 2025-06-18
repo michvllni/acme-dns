@@ -177,18 +177,6 @@ func (d *acmedb) Register(afrom cidrslice) (ACMETxt, error) {
 
 // RegisterWithSubdomain creates a new ACMETxt entry in the database with a given subdomain.
 func (d *acmedb) RegisterWithSubdomain(afrom cidrslice, subdomain string) (ACMETxt, error) {
-
-	// ensure the subdomain is not already in use
-	exists, err := d.SubdomainExists(subdomain)
-	if err != nil {
-		log.WithFields(log.Fields{"error": err.Error()}).Debug("Error in SubdomainExists check")
-		return ACMETxt{}, errors.New("subdomain check error")
-	}
-	if exists {
-		log.WithFields(log.Fields{"subdomain": subdomain}).Debug("Subdomain already exists")
-		return ACMETxt{}, errors.New("subdomain already exists")
-	}
-
 	d.Mutex.Lock()
 	defer d.Mutex.Unlock()
 	tx, err := d.DB.Begin()

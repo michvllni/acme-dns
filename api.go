@@ -55,8 +55,30 @@ func webRegisterPost(w http.ResponseWriter, r *http.Request, _ httprouter.Params
 	} else {
 		if !validSubdomain(aTXT.Subdomain) {
 			err = fmt.Errorf("invalid subdomain: %s", aTXT.Subdomain)
+			regStatus = http.StatusBadRequest
+			reg = jsonError("bad_subdomain")
+			log.WithFields(log.Fields{"error": err.Error(), "subdomain": aTXT.Subdomain}).Debug("Invalid subdomain in registration")
 		} else {
-			nu, err = DB.RegisterWithSubdomain(aTXT.AllowFrom, aTXT.Subdomain)
+			// ensure the subdomain is not already in use
+			var exists bool // predefined to prevent overshadowing of the error variable
+			exists, err = DB.SubdomainExists(aTXT.Subdomain)
+			if err != nil {
+				regStatus = http.StatusInternalServerError
+				reg = jsonError("db_error")
+				log.WithFields(log.Fields{"error": err.Error()}).Debug("Error in SubdomainExists check")
+			} else if exists {
+				regStatus = http.StatusConflict
+				reg = jsonError("subdomain_exists")
+				log.WithFields(log.Fields{"subdomain": aTXT.Subdomain}).Debug("Subdomain already exists")
+			} else {
+				nu, err = DB.RegisterWithSubdomain(aTXT.AllowFrom, aTXT.Subdomain)
+			}
+		}
+		if regStatus == http.StatusConflict || regStatus == http.StatusInternalServerError {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(regStatus)
+			_, _ = w.Write(reg)
+			return
 		}
 	}
 

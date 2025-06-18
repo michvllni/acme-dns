@@ -373,11 +373,13 @@ func (d *acmedb) SubdomainExists(subdomain string) (bool, error) {
 
 	// It will only be one row though
 	for rows.Next() {
-		txt, err := getModelFromRow(rows)
-		if err != nil {
-			return false, err
+		if rows != nil {
+			txt, err := getModelFromRow(rows)
+			if err != nil {
+				return false, err
+			}
+			results = append(results, txt)
 		}
-		results = append(results, txt)
 	}
 	return len(results) > 0, nil
 }

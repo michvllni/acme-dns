@@ -118,7 +118,7 @@ func TestApiRegister(t *testing.T) {
 
 func TestApiRegisterWithSubdomain(t *testing.T) {
 
-	subdomain := "29d5db12-4ef8-431d-963e-9218caafb14b"
+	subdomain := "8ba1ed0e-0f85-497d-8a70-efe190ebc05c"
 	router := setupRouter(false, false)
 	server := httptest.NewServer(router)
 	defer server.Close()

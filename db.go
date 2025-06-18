@@ -350,7 +350,7 @@ func (d *acmedb) SetBackend(backend *sql.DB) {
 func (d *acmedb) SubdomainExists(subdomain string) (bool, error) {
 	d.Mutex.Lock()
 	defer d.Mutex.Unlock()
-	var results []ACMETxt
+	var results []string
 	getSQL := `
 	SELECT Subdomain
 	FROM records
@@ -373,13 +373,12 @@ func (d *acmedb) SubdomainExists(subdomain string) (bool, error) {
 
 	// It will only be one row though
 	for rows.Next() {
-		if rows != nil {
-			txt, err := getModelFromRow(rows)
-			if err != nil {
-				return false, err
-			}
-			results = append(results, txt)
+		var subdomain string
+		err = rows.Scan(&subdomain)
+		if err != nil {
+			return false, err
 		}
+		results = append(results, subdomain)
 	}
 	return len(results) > 0, nil
 }

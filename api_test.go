@@ -145,7 +145,7 @@ func TestApiRegisterWithInvalidSubdomain(t *testing.T) {
 	e := getExpect(t, server)
 	e.POST("/register").
 		WithJSON(map[string]interface{}{
-			"subdomain": "invalid-subdomain",
+			"subdomain": "-invalid_subdomain-",
 		}).
 		Expect().
 		Status(http.StatusBadRequest).

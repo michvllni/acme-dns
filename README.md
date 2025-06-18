@@ -38,6 +38,7 @@ Using acme-dns is a three-step process (provided you already have the self-hoste
 
 ## API
 
+
 ### Register endpoint
 
 The method returns a new unique subdomain and credentials needed to update your record.

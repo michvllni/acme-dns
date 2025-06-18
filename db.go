@@ -181,7 +181,7 @@ func (d *acmedb) RegisterWithSubdomain(afrom cidrslice, subdomain string) (ACMET
 	// ensure the subdomain is not already in use
 	exists, err := d.SubdomainExists(subdomain)
 	if err != nil {
-		log.WithFields(log.Fields{"error": err.Error()}).Error("Error in SubdomainExists check")
+		log.WithFields(log.Fields{"error": err.Error()}).Debug("Error in SubdomainExists check")
 		return ACMETxt{}, errors.New("subdomain check error")
 	}
 	if exists {

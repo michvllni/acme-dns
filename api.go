@@ -74,7 +74,7 @@ func webRegisterPost(w http.ResponseWriter, r *http.Request, _ httprouter.Params
 				nu, err = DB.RegisterWithSubdomain(aTXT.AllowFrom, aTXT.Subdomain)
 			}
 		}
-		if regStatus == http.StatusConflict || regStatus == http.StatusInternalServerError {
+		if regStatus != 0 {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(regStatus)
 			_, _ = w.Write(reg)

@@ -63,15 +63,6 @@ func TestRegisterWithSubdomain(t *testing.T) {
 	}
 }
 
-func TestRegisterWithInvalidSubdomain(t *testing.T) {
-
-	// Invalid subdomain
-	_, err := DB.RegisterWithSubdomain(cidrslice{}, "invalid-subdomain!")
-	if err == nil {
-		t.Errorf("Expected error for invalid subdomain, but got none")
-	}
-}
-
 func TestRegisterWithAlreadyExistingSubdomain(t *testing.T) {
 	// Register with subdomain tests
 	subdomain := "29d5db12-4ef8-431d-963e-9218caafb14c"

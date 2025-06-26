@@ -64,16 +64,18 @@ type logconfig struct {
 
 type acmedb struct {
 	Mutex sync.Mutex
-	DB *sql.DB
+	DB    *sql.DB
 }
 
 type database interface {
 	Init(string, string) error
 	Register(cidrslice) (ACMETxt, error)
+	RegisterWithSubdomain(cidrslice, string) (ACMETxt, error)
 	GetByUsername(uuid.UUID) (ACMETxt, error)
 	GetTXTForDomain(string) ([]string, error)
 	Update(ACMETxtPost) error
 	GetBackend() *sql.DB
 	SetBackend(*sql.DB)
 	Close()
+	SubdomainExists(string) (bool, error)
 }

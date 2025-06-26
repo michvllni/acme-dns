@@ -4,8 +4,9 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"errors"
-	"github.com/erikstmartin/go-testdb"
 	"testing"
+
+	"github.com/erikstmartin/go-testdb"
 )
 
 type testResult struct {
@@ -46,6 +47,34 @@ func TestRegisterNoCIDR(t *testing.T) {
 	_, err := DB.Register(cidrslice{})
 	if err != nil {
 		t.Errorf("Registration failed, got error [%v]", err)
+	}
+}
+
+func TestRegisterWithSubdomain(t *testing.T) {
+	// Register with subdomain tests
+	subdomain := "8bda3989-8be6-466b-8dd4-5b844537386b"
+	aTXT, err := DB.RegisterWithSubdomain(cidrslice{}, subdomain)
+	if err != nil {
+		t.Errorf("Registration with subdomain failed, got error [%v]", err)
+	}
+	// Ensure the subdomain is set correctly
+	if aTXT.Subdomain != subdomain {
+		t.Errorf("Expected subdomain to be '%s', but got '%s'", subdomain, aTXT.Subdomain)
+	}
+}
+
+func TestRegisterWithAlreadyExistingSubdomain(t *testing.T) {
+	// Register with subdomain tests
+	subdomain := "29d5db12-4ef8-431d-963e-9218caafb14c"
+	_, err := DB.RegisterWithSubdomain(cidrslice{}, subdomain)
+	if err != nil {
+		t.Errorf("Registration with subdomain failed, got error [%v]", err)
+	}
+
+	// Try to register again with the same subdomain
+	_, err = DB.RegisterWithSubdomain(cidrslice{}, subdomain)
+	if err == nil {
+		t.Errorf("Expected error for already existing subdomain, but got none")
 	}
 }
 
@@ -297,5 +326,29 @@ func TestUpdate(t *testing.T) {
 	err = DB.Update(regUser.ACMETxtPost)
 	if err != nil {
 		t.Errorf("DB Update failed, got error: [%v]", err)
+	}
+}
+
+func TestSubdomainExists(t *testing.T) {
+	// Create  reg to refer to
+	reg, err := DB.Register(cidrslice{})
+	if err != nil {
+		t.Errorf("Registration failed, got error [%v]", err)
+	}
+
+	exists, err := DB.SubdomainExists(reg.Subdomain)
+	if err != nil {
+		t.Errorf("Could not check subdomain existence, got error [%v]", err)
+	}
+	if !exists {
+		t.Errorf("Subdomain [%s] should exist but was not found", reg.Subdomain)
+	}
+
+	exists, err = DB.SubdomainExists("00000000-0000-0000-0000-000000000000")
+	if err != nil {
+		t.Errorf("Could not check subdomain existence, got error [%v]", err)
+	}
+	if exists {
+		t.Errorf("Subdomain [00000000-0000-0000-0000-000000000000] should not exist but was found")
 	}
 }

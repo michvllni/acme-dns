@@ -116,6 +116,44 @@ func TestApiRegister(t *testing.T) {
 	response.Value("allowfrom").Array().Elements("123.123.123.123/32", "2001:db8:a0b:12f0::1/32", "::1/64")
 }
 
+func TestApiRegisterWithSubdomain(t *testing.T) {
+
+	subdomain := "8ba1ed0e-0f85-497d-8a70-efe190ebc05c"
+	router := setupRouter(false, false)
+	server := httptest.NewServer(router)
+	defer server.Close()
+	e := getExpect(t, server)
+	e.POST("/register").
+		WithJSON(map[string]interface{}{
+			"subdomain": subdomain,
+		}).
+		Expect().
+		Status(http.StatusCreated).
+		JSON().Object().
+		ContainsKey("fulldomain").
+		ContainsKey("subdomain").
+		ContainsKey("username").
+		ContainsKey("password").
+		NotContainsKey("error").
+		ValueEqual("subdomain", subdomain)
+}
+
+func TestApiRegisterWithInvalidSubdomain(t *testing.T) {
+	router := setupRouter(false, false)
+	server := httptest.NewServer(router)
+	defer server.Close()
+	e := getExpect(t, server)
+	e.POST("/register").
+		WithJSON(map[string]interface{}{
+			"subdomain": "-invalid_subdomain-",
+		}).
+		Expect().
+		Status(http.StatusBadRequest).
+		JSON().Object().
+		ContainsKey("error").
+		ValueEqual("error", "bad_subdomain")
+}
+
 func TestApiRegisterBadAllowFrom(t *testing.T) {
 	router := setupRouter(false, false)
 	server := httptest.NewServer(router)

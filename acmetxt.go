@@ -84,10 +84,17 @@ func (a ACMETxt) allowedFromList(ips []string) bool {
 }
 
 func newACMETxt() ACMETxt {
+	return newACMETxtWithSubdomain("")
+}
+func newACMETxtWithSubdomain(subdomain string) ACMETxt {
 	var a = ACMETxt{}
 	password := generatePassword(40)
 	a.Username = uuid.New()
 	a.Password = password
-	a.Subdomain = uuid.New().String()
+	if subdomain == "" {
+		a.Subdomain = uuid.New().String()
+	} else {
+		a.Subdomain = subdomain
+	}
 	return a
 }
